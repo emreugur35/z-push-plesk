@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  z-push:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: z-push-plesk
+    restart: always
+    ports:
+      - "127.0.0.1:8080:80"
+    environment:
+      - TIMEZONE=Europe/Istanbul
+      - IMAP_SERVER=host.docker.internal
+      - IMAP_PORT=143
+      - IMAP_OPTIONS=/notls
+      - SMTP_SERVER=host.docker.internal
+      - SMTP_PORT=25
+      - SMTP_AUTH=true
+      - USE_FULLEMAIL_FOR_LOGIN=true
+      - LOGLEVEL=LOGLEVEL_INFO
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - zpush-state:/var/lib/z-push
+      - zpush-log:/var/log/z-push
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+volumes:
+  zpush-state:
+    driver: local
+  zpush-log:
+    driver: local
