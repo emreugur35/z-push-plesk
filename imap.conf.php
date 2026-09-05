@@ -90,6 +90,19 @@ $imap_smtp_params = array(
     'port' => (int) imap_get_env('SMTP_PORT', 25),
     'auth' => imap_get_env_bool('SMTP_AUTH', true),
     'localhost' => imap_get_env('SMTP_HELO', 'localhost'),
+    // Postfix advertises STARTTLS and (with Plesk's default smtpd_tls_auth_only=yes)
+    // requires it before AUTH, so TLS can't just be turned off. But its certificate's
+    // CN is the real server hostname (e.g. adsunucusu.com), not 'host.docker.internal' -
+    // no cert will ever match that Docker-only alias. verify_peer stays on (still
+    // validates the certificate chain/authenticity); only the hostname check is
+    // skipped, since Docker's internal networking already guarantees we're talking
+    // to this same host.
+    'socket_options' => array(
+        'ssl' => array(
+            'verify_peer' => true,
+            'verify_peer_name' => false,
+        ),
+    ),
 );
 
 // RFC 2822 requires \r\n; only change this if not using the smtp method above
