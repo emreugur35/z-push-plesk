@@ -54,6 +54,9 @@ COPY config.php /usr/share/z-push/config.php
 COPY imap.conf.php /usr/share/z-push/backend/imap/config.php
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
+# Copy PHP runtime overrides (keep error output out of HTTP responses; see file for why)
+COPY zpush-php.ini /usr/local/etc/php/conf.d/zz-zpush.ini
+
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 EXPOSE 80
