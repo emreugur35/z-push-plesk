@@ -50,7 +50,7 @@ chmod +x deploy-plesk-wildcard.sh
 This script will:
 1. Build and start the `z-push-plesk` Docker container.
 2. Inject the `/Microsoft-Server-ActiveSync` proxy rules into Plesk's Nginx custom domain template (`/usr/local/psa/admin/conf/templates/custom/domain/nginxDomainVirtualHost.php`).
-3. Run `plesk srvman reconfig` to apply the changes to **all current and future domains**.
+3. Run `plesk repair web -y` to apply the changes to **all current and future domains**.
 
 ---
 
@@ -92,7 +92,7 @@ If you prefer manual installation:
 
 4. **Rebuild Plesk Web Server Configuration:**
    ```bash
-   plesk srvman reconfig
+   plesk repair web -y
    systemctl reload nginx
    ```
 
@@ -103,6 +103,19 @@ If you prefer manual installation:
 Navigate to `https://any-of-your-domains.com/Microsoft-Server-ActiveSync` in a browser or test with an Exchange/ActiveSync client (iOS Mail, Android Outlook, Windows Mail).
 
 You should be prompted for basic authentication username (`user@domain.com`) and password.
+
+---
+
+## Persistent State
+
+`docker-compose.yml` bind-mounts Z-Push's device state and logs to host directories next to the compose file, so they survive `docker compose up -d --build`, container recreation, and host reboots:
+
+| Host path | Container path | Contents |
+| :--- | :--- | :--- |
+| `./data/state` | `/var/lib/z-push` | Per-device sync state (`STATE_DIR`) - deleting a device's subfolder here forces it to do a full resync |
+| `./data/log` | `/var/log/z-push` | Z-Push application logs and PHP error log (`php-error.log`) |
+
+Both directories are created automatically on first `docker compose up`, owned by `www-data` inside the container. They're excluded from git via `.gitignore`.
 
 ---
 

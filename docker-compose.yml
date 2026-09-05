@@ -22,16 +22,10 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - zpush-state:/var/lib/z-push
-      - zpush-log:/var/log/z-push
+      - ./data/state:/var/lib/z-push
+      - ./data/log:/var/log/z-push
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "5"
-
-volumes:
-  zpush-state:
-    driver: local
-  zpush-log:
-    driver: local

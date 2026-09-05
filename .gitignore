@@ -1,0 +1,2 @@
+# Z-Push runtime state/logs (bind-mounted by docker-compose.yml, must survive restarts/rebuilds)
+/data/
