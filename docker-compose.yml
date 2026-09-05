@@ -15,7 +15,7 @@ services:
       - IMAP_PORT=143
       - IMAP_OPTIONS=/notls
       - SMTP_SERVER=host.docker.internal
-      - SMTP_PORT=25
+      - SMTP_PORT=587
       - SMTP_AUTH=true
       - USE_FULLEMAIL_FOR_LOGIN=true
       - LOGLEVEL=LOGLEVEL_INFO

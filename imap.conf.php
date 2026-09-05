@@ -88,8 +88,24 @@ global $imap_smtp_params;
 $imap_smtp_params = array(
     'host' => imap_get_env('SMTP_SERVER', 'host.docker.internal'),
     'port' => (int) imap_get_env('SMTP_PORT', 25),
-    'auth' => imap_get_env_bool('SMTP_AUTH', true),
+    // Net_SMTP::_getBestAuthMethod() (Net/SMTP.php) tries mechanisms in the order
+    // DIGEST-MD5, CRAM-MD5, LOGIN, PLAIN (registration order, since two prepend=true
+    // calls each jump ahead of what came before) and picks whichever the server also
+    // advertises. Leaving 'auth' as a bare boolean lets it auto-pick DIGEST-MD5 first -
+    // but that mechanism's client-side implementation in this vendored code sends a
+    // blank username (Postfix logs "SASL authentication failure: All-whitespace
+    // username"), even though the credentials themselves are correct. Passing a
+    // method name string here instead of true forces Mail_smtp to skip negotiation
+    // and use PLAIN directly (Mail/smtp.php: `is_string($this->auth) ? $this->auth :
+    // ''`), which is fine since this rides inside the STARTTLS-encrypted channel.
+    'auth' => imap_get_env_bool('SMTP_AUTH', true) ? imap_get_env('SMTP_AUTH_METHOD', 'PLAIN') : false,
     'localhost' => imap_get_env('SMTP_HELO', 'localhost'),
+    // BackendIMAP->sendMessage() (imap.php ~line 2633) only fills in the real IMAP-
+    // authenticated user's credentials when it finds these exact placeholder strings
+    // already set here - without them, 'auth' => true above makes Net_SMTP attempt
+    // SMTP AUTH with no credentials at all, which Postfix/Dovecot reject.
+    'username' => 'imap_username',
+    'password' => 'imap_password',
     // Postfix advertises STARTTLS and (with Plesk's default smtpd_tls_auth_only=yes)
     // requires it before AUTH, so TLS can't just be turned off. But its certificate's
     // CN is the real server hostname (e.g. adsunucusu.com), not 'host.docker.internal' -

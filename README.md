@@ -129,5 +129,8 @@ Both directories are created automatically on first `docker compose up`, owned b
 | `IMAP_OPTIONS` | `/notls` | IMAP SSL/TLS connection options |
 | `SMTP_SERVER` | `host.docker.internal` | SMTP server IP/hostname running Postfix |
 | `SMTP_PORT` | `25` | Postfix SMTP port |
+| `SMTP_AUTH` | `true` | Whether to authenticate with Postfix before sending (set `false` to disable) |
+| `SMTP_AUTH_METHOD` | `PLAIN` | SMTP AUTH mechanism to force - avoids Net_SMTP auto-negotiating DIGEST-MD5, whose client implementation sends a blank username to Postfix |
+| `SMTP_HELO` | `localhost` | Hostname sent in the SMTP EHLO/HELO greeting |
 | `USE_FULLEMAIL_FOR_LOGIN` | `true` | Required for Plesk multi-domain logins |
 | `LOGLEVEL` | `LOGLEVEL_INFO` | Logging level (`LOGLEVEL_DEBUG` for troubleshooting) |
