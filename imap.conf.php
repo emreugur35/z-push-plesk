@@ -93,16 +93,20 @@ $imap_smtp_params = array(
     // Postfix advertises STARTTLS and (with Plesk's default smtpd_tls_auth_only=yes)
     // requires it before AUTH, so TLS can't just be turned off. But its certificate's
     // CN is the real server hostname (e.g. adsunucusu.com), not 'host.docker.internal' -
-    // no cert will ever match that Docker-only alias. verify_peer stays on (still
-    // validates the certificate chain/authenticity); only the hostname check is
-    // skipped, since Docker's internal networking already guarantees we're talking
-    // to this same host.
-    'socket_options' => array(
-        'ssl' => array(
-            'verify_peer' => true,
-            'verify_peer_name' => false,
-        ),
-    ),
+    // no cert will ever match that Docker-only alias, and this image never installs
+    // ca-certificates, so the chain may not validate either. Since this connection
+    // never leaves the Docker host (container -> host.docker.internal -> the same
+    // machine's Postfix), skipping both checks is an acceptable trade-off here.
+    //
+    // IMPORTANT: Z-Push vendors its own Mail/smtp.php + Net/SMTP.php + Net/Socket.php
+    // under backend/imap/ (not the standalone PEAR package). These classes read
+    // verify_peer/verify_peer_name as TOP-LEVEL keys here, and Net/Socket.php's
+    // enableCrypto() rebuilds the SSL context from exactly these values right before
+    // the STARTTLS handshake - options nested under a 'socket_options' key only
+    // apply to the initial plaintext connection and get overwritten before crypto
+    // starts, so they must be set here directly or they're silently ignored.
+    'verify_peer' => false,
+    'verify_peer_name' => false,
 );
 
 // RFC 2822 requires \r\n; only change this if not using the smtp method above
