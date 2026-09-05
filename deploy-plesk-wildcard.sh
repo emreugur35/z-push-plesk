@@ -50,7 +50,7 @@ if [ -f "$DEFAULT_TEMPLATE" ]; then
     fi
 
     echo -e "${GREEN}==> Step 3: Regenerating Nginx configuration for ALL Plesk domains...${NC}"
-    plesk srvman reconfig
+    plesk repair web -y
     systemctl reload nginx
 else
     echo "Plesk Nginx template default file not found. Applying via Plesk CLI per site..."
