@@ -8,7 +8,7 @@ This repository provides a production-ready, Dockerized Z-Push solution for Ples
 
 - **Wildcard Multi-Domain Support**: Single container handles ActiveSync for every domain on Plesk.
 - **Plesk IMAP/SMTP Integration**: Authenticates directly against Plesk's Dovecot IMAP and Postfix SMTP (`USE_FULLEMAIL_FOR_LOGIN = true`).
-- **PHP 8.2 Base**: Lightweight Apache + PHP 8.2 container with all required extensions (`imap`, `pcntl`, `posix`, `sysvsem`, `sysvshm`, `bcmath`).
+- **PHP 8.2 Base**: Lightweight Apache + PHP 8.2 container with all required extensions (`imap`, `intl`, `pcntl`, `posix`, `sysvsem`, `sysvshm`, `bcmath`).
 - **Configurable via Environment**: Easily customize IMAP server host, ports, timezone, log levels, and state directories.
 - **Automated Plesk Wildcard Integration**: Script automatically updates Plesk's custom Nginx template and regenerates server configurations.
 

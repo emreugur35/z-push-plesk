@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libkrb5-dev \
     libxml2-dev \
     libzip-dev \
+    libicu-dev \
     logrotate \
     cron \
     unzip \
@@ -14,9 +15,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Configure & Install PHP extensions required by Z-Push
+# intl is required by Utils::FormatDateUtc() (lib/utils/utils.php), which is called
+# unconditionally (no function_exists guard) for every synced item that has a date -
+# without it, sync fatals on "Call to undefined function datefmt_create()".
 RUN docker-php-ext-configure imap --with-kerberos --with-imap-ssl \
     && docker-php-ext-install -j$(nproc) \
         imap \
+        intl \
         pcntl \
         posix \
         sysvsem \
