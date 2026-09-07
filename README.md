@@ -18,14 +18,14 @@ This repository provides a production-ready, Dockerized Z-Push solution for Ples
 
 | File | Description |
 | :--- | :--- |
-| [`Dockerfile`](file:///Users/emreugur/z-push-docker/Dockerfile) | PHP 8.2 + Apache image with Z-Push 2.7.6 and required extensions |
-| [`docker-compose.yml`](file:///Users/emreugur/z-push-docker/docker-compose.yml) | Docker Compose service definition on port `127.0.0.1:8080` |
-| [`config.php`](file:///Users/emreugur/z-push-docker/config.php) | Z-Push main config with dynamic environment variable support |
-| [`imap.conf.php`](file:///Users/emreugur/z-push-docker/imap.conf.php) | Z-Push IMAP backend config for Plesk mail authentication |
-| [`apache-zpush.conf`](file:///Users/emreugur/z-push-docker/apache-zpush.conf) | Apache virtualhost configuration inside the container |
-| [`plesk-zpush-wildcard.conf`](file:///Users/emreugur/z-push-docker/plesk-zpush-wildcard.conf) | Nginx location directives for Plesk proxying |
-| [`deploy-plesk-wildcard.sh`](file:///Users/emreugur/z-push-docker/deploy-plesk-wildcard.sh) | One-touch automated deployment script for Plesk servers |
-| [`backup-plesk-templates.sh`](file:///Users/emreugur/z-push-docker/backup-plesk-templates.sh) | Creates timestamped safety backups of Plesk configuration templates (with restore option) |
+| [`Dockerfile`](Dockerfile) | PHP 8.2 + Apache image with Z-Push 2.7.6 and required extensions |
+| [`docker-compose.yml`](docker-compose.yml) | Docker Compose service definition on port `127.0.0.1:8080` |
+| [`config.php`](config.php) | Z-Push main config with dynamic environment variable support |
+| [`imap.conf.php`](imap.conf.php) | Z-Push IMAP backend config for Plesk mail authentication |
+| [`apache-zpush.conf`](apache-zpush.conf) | Apache virtualhost configuration inside the container |
+| [`plesk-zpush-wildcard.conf`](plesk-zpush-wildcard.conf) | Nginx location directives for Plesk proxying |
+| [`deploy-plesk-wildcard.sh`](deploy-plesk-wildcard.sh) | One-touch automated deployment script for Plesk servers |
+| [`backup-plesk-templates.sh`](backup-plesk-templates.sh) | Creates timestamped safety backups of Plesk configuration templates (with restore option) |
 
 ---
 
@@ -35,7 +35,7 @@ This repository provides a production-ready, Dockerized Z-Push solution for Ples
 Upload this repository to `/opt/z-push-docker` or any directory on your Plesk server:
 
 ```bash
-git clone <your-repo-url> /opt/z-push-docker
+git clone https://github.com/emreugur35/z-push-plesk.git /opt/z-push-docker
 cd /opt/z-push-docker
 ```
 
@@ -128,9 +128,38 @@ Both directories are created automatically on first `docker compose up`, owned b
 | `IMAP_PORT` | `143` | Dovecot IMAP port |
 | `IMAP_OPTIONS` | `/notls` | IMAP SSL/TLS connection options |
 | `SMTP_SERVER` | `host.docker.internal` | SMTP server IP/hostname running Postfix |
-| `SMTP_PORT` | `25` | Postfix SMTP port |
+| `SMTP_PORT` | `587` | Postfix submission port (STARTTLS) - see [SMTP Submission Port Configuration](#smtp-submission-port-587-configuration-on-the-plesk-mail-server) below |
 | `SMTP_AUTH` | `true` | Whether to authenticate with Postfix before sending (set `false` to disable) |
 | `SMTP_AUTH_METHOD` | `PLAIN` | SMTP AUTH mechanism to force - avoids Net_SMTP auto-negotiating DIGEST-MD5, whose client implementation sends a blank username to Postfix |
 | `SMTP_HELO` | `localhost` | Hostname sent in the SMTP EHLO/HELO greeting |
 | `USE_FULLEMAIL_FOR_LOGIN` | `true` | Required for Plesk multi-domain logins |
 | `LOGLEVEL` | `LOGLEVEL_INFO` | Logging level (`LOGLEVEL_DEBUG` for troubleshooting) |
+
+---
+
+## SMTP Submission Port (587) Configuration on the Plesk Mail Server
+
+Z-Push sends outgoing mail (Send Message) through Postfix's `submission` service on port `587`, authenticating with the same credentials the user logged into IMAP with (`SMTP_AUTH_METHOD=PLAIN`, forced - see above). Because the container reaches Postfix as `host.docker.internal` rather than the mail server's real hostname, TLS certificate/hostname verification is already disabled on the client side in `imap.conf.php`. For this local, same-host connection to authenticate reliably, Postfix's `submission` service also needs its TLS requirement relaxed from mandatory to opportunistic.
+
+On the Plesk mail server (the Docker host), edit Postfix's master process config:
+
+```bash
+nano /etc/postfix/master.cf
+```
+
+Find (or add) the `submission` service block and set it to:
+
+```text
+submission inet n       -       n       -       -       smtpd
+  -o smtpd_enforce_tls=yes
+  -o smtpd_tls_security_level=may
+  -o smtpd_sasl_auth_enable=yes
+```
+
+Then reload Postfix for the change to take effect:
+
+```bash
+postfix reload
+```
+
+**Note:** `smtpd_tls_security_level=may` makes TLS opportunistic rather than mandatory on the submission port. This is an acceptable trade-off here because the Z-Push container only ever reaches Postfix over the Docker host-internal bridge (`host.docker.internal`), never over the public internet. If your server's `submission` port is also exposed to external/internet-facing clients, don't apply this relaxed setting globally - scope it to the local connection only, or keep TLS mandatory (`encrypt`) for those clients.
