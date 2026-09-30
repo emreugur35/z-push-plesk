@@ -35,18 +35,25 @@ define('IMAP_AUTOSEEN_ON_DELETE', false);
 // not to refuse logon with "you didn't configure your IMAP folder names".
 define('IMAP_FOLDER_CONFIGURED', true);
 
-// Folder prefix is the common part in folder names - not used in the plain
-// INBOX/Sent/Drafts/Trash layout this image defaults to.
-define('IMAP_FOLDER_PREFIX', '');
-define('IMAP_FOLDER_PREFIX_IN_INBOX', false);
+// Folder prefix is the common part in folder names. Plesk's Dovecot uses a
+// Courier-style namespace (prefix "INBOX.", separator "."), so its special folders
+// are really INBOX.Sent / INBOX.Drafts / INBOX.Trash - set IMAP_FOLDER_PREFIX=INBOX
+// there. With an empty prefix BackendIMAP looks for a top-level "Sent" that doesn't
+// exist and SendMail logs "The email could not be saved to Sent Items folder"
+// (saveSentMessage(), imap.php ~line 2699); Drafts/Trash aren't recognised either.
+// BackendIMAP inserts the server's own delimiter between prefix and name, so don't
+// include the trailing ".". INBOX itself stays un-prefixed unless the _IN_INBOX flag is set.
+define('IMAP_FOLDER_PREFIX', imap_get_env('IMAP_FOLDER_PREFIX', ''));
+define('IMAP_FOLDER_PREFIX_IN_INBOX', imap_get_env_bool('IMAP_FOLDER_PREFIX_IN_INBOX', false));
 
-// Mailbox folder mapping
-define('IMAP_FOLDER_INBOX', 'INBOX');
+// Mailbox folder mapping - names without IMAP_FOLDER_PREFIX (case doesn't matter).
+// Override when a server uses localized/other names (e.g. "Sent Items", "Deleted Items").
+define('IMAP_FOLDER_INBOX', imap_get_env('IMAP_FOLDER_INBOX', 'INBOX'));
 define('IMAP_FOLDER_SENT', imap_get_env('IMAP_FOLDER_SENT', 'Sent'));
 define('IMAP_FOLDER_DRAFT', imap_get_env('IMAP_FOLDER_DRAFT', 'Drafts'));
 define('IMAP_FOLDER_TRASH', imap_get_env('IMAP_FOLDER_TRASH', 'Trash'));
 define('IMAP_FOLDER_SPAM', imap_get_env('IMAP_FOLDER_SPAM', 'Junk'));
-define('IMAP_FOLDER_ARCHIVE', 'Archive');
+define('IMAP_FOLDER_ARCHIVE', imap_get_env('IMAP_FOLDER_ARCHIVE', 'Archive'));
 
 // forward messages inline (upstream default: true)
 define('IMAP_INLINE_FORWARD', true);

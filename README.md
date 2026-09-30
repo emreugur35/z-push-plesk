@@ -127,6 +127,14 @@ Both directories are created automatically on first `docker compose up`, owned b
 | `IMAP_SERVER` | `host.docker.internal` | Mail server IP/hostname running Dovecot |
 | `IMAP_PORT` | `143` | Dovecot IMAP port |
 | `IMAP_OPTIONS` | `/notls` | IMAP SSL/TLS connection options |
+| `IMAP_FOLDER_PREFIX` | `INBOX` | Namespace prefix of the special folders (no trailing delimiter). Plesk's Dovecot stores them as `INBOX.Sent`, `INBOX.Drafts`, `INBOX.Trash`; without this, sent mail isn't saved to Sent ("The email could not be saved to Sent Items folder"). Set to empty for servers with top-level `Sent`/`Drafts`/`Trash` |
+| `IMAP_FOLDER_PREFIX_IN_INBOX` | `false` | Also prefix the Inbox itself (only for servers where Inbox is e.g. `INBOX.INBOX`) |
+| `IMAP_FOLDER_INBOX` | `INBOX` | Inbox folder name |
+| `IMAP_FOLDER_SENT` | `Sent` | Sent folder name, without the prefix (e.g. `Sent Items`) - where sent mail is saved |
+| `IMAP_FOLDER_DRAFT` | `Drafts` | Drafts folder name, without the prefix |
+| `IMAP_FOLDER_TRASH` | `Trash` | Trash folder name, without the prefix (e.g. `Deleted Items`) |
+| `IMAP_FOLDER_SPAM` | `Junk` | Junk/spam folder name, without the prefix (e.g. `Spam`) |
+| `IMAP_FOLDER_ARCHIVE` | `Archive` | Archive folder name, without the prefix |
 | `SMTP_SERVER` | `host.docker.internal` | SMTP server IP/hostname running Postfix |
 | `SMTP_PORT` | `587` | Postfix submission port (STARTTLS) - see [SMTP Submission Port Configuration](#smtp-submission-port-587-configuration-on-the-plesk-mail-server) below |
 | `SMTP_AUTH` | `true` | Whether to authenticate with Postfix before sending (set `false` to disable) |

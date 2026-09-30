@@ -14,6 +14,13 @@ services:
       - IMAP_SERVER=host.docker.internal
       - IMAP_PORT=143
       - IMAP_OPTIONS=/notls
+      - IMAP_FOLDER_PREFIX=INBOX
+      - IMAP_FOLDER_INBOX=INBOX
+      - IMAP_FOLDER_SENT=Sent
+      - IMAP_FOLDER_DRAFT=Drafts
+      - IMAP_FOLDER_TRASH=Trash
+      - IMAP_FOLDER_SPAM=Junk
+      - IMAP_FOLDER_ARCHIVE=Archive
       - SMTP_SERVER=host.docker.internal
       - SMTP_PORT=587
       - SMTP_AUTH=true
